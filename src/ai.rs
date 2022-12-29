@@ -25,12 +25,15 @@ impl TreeNode {
                     let mut children: [Option<Box<TreeNode>>; 10] =
                         [0; 10].map(|_| -> Option<Box<TreeNode>> { None });
                     for i in 0..10 {
-                        children[i] = Some(Box::new(TreeNode::new(
-                            &boardfunc::place(board, nextTurn, i)
-                                .expect("Couldn't find space to place tile in tree"),
-                            depthLeft - 1,
-                            if nextTurn == AI { PLAYER } else { AI },
-                        )));
+                        let newBoard = boardfunc::place(board, nextTurn, i);
+
+                        if !newBoard.is_none() {
+                            children[i] = Some(Box::new(TreeNode::new(
+                                &newBoard.unwrap(),
+                                depthLeft - 1,
+                                if nextTurn == AI { PLAYER } else { AI },
+                            )));
+                        }
                     }
                     break 'bl Some(children);
                 }
@@ -40,38 +43,50 @@ impl TreeNode {
         }
     }
 
-    pub fn getValue(self: &TreeNode) -> i32 {
-        let mut maxValue = -1;
-        let mut minValue = 1;
-
+    pub fn getValue(self: &TreeNode) -> f32 {
         let winner = boardfunc::getWinner(&self.board);
 
         if winner == AI {
-            return 1;
+            return 1.0;
         }
         if winner == PLAYER {
-            return -1;
+            return -1.0;
         }
 
         if self.children.is_none() {
-            return 0;
+            return 0.0;
         }
 
+        let mut sum: f32 = 0.0;
+        let mut maxProbability: f32 = -1.0;
+        let mut minProbability: f32 = 1.0;
         for child in self.children.as_ref().unwrap().iter() {
             if !child.is_none() {
                 let value = child.as_ref().unwrap().getValue();
+                sum += value;
 
-                minValue = min(minValue, value);
-                maxValue = max(maxValue, value);
+                if value < minProbability {
+                    minProbability = value;
+                }
+                if value > maxProbability {
+                    maxProbability = value;
+                }
             }
         }
+        let average = sum / 10.0;
 
         if self.nextTurn == PLAYER {
-            return minValue;
+            if minProbability == -1.0 {
+                return -1.0;
+            }
+            return average;
         }
 
         if self.nextTurn == AI {
-            return maxValue;
+            if maxProbability == 1.0 {
+                return 1.0;
+            }
+            return average;
         }
 
         panic!("wtf");
@@ -82,14 +97,14 @@ pub fn ai(board: &[[char; 10]; 10]) -> i32 {
     // let mut bestChoicePosition = 0;
     // let mut bestChoiceValue = -10;
 
-    let bestChoicePosition: Arc<Mutex<i32>> = Arc::new(Mutex::new(0));
-    let bestChoiceValue: Arc<Mutex<i32>> = Arc::new(Mutex::new(-10));
+    let bestChoicePosition: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
+    let bestChoiceProbability: Arc<Mutex<f32>> = Arc::new(Mutex::new(-10.0));
     let mut handles: Vec<std::thread::JoinHandle<()>> = vec![];
 
     println!("AI VALUES");
     for i in 0..10 {
         let bestChoicePosition = bestChoicePosition.clone();
-        let bestChoiceValue = bestChoiceValue.clone();
+        let bestChoiceValue = bestChoiceProbability.clone();
         let board = board.clone();
 
         handles.push(thread::spawn(move || {
@@ -102,11 +117,11 @@ pub fn ai(board: &[[char; 10]; 10]) -> i32 {
 
             {
                 let mut bestChoicePosition = bestChoicePosition.lock().unwrap();
-                let mut bestChoiceValue = bestChoiceValue.lock().unwrap();
+                let mut bestChoiceProbability = bestChoiceValue.lock().unwrap();
 
-                if value > *bestChoiceValue {
-                    *bestChoiceValue = value;
-                    *bestChoicePosition = i as i32;
+                if value > *bestChoiceProbability {
+                    *bestChoiceProbability = value;
+                    *bestChoicePosition = i as f32;
                 }
             }
         }));

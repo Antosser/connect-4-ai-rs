@@ -42,4 +42,6 @@ fn main() {
         let aiChoice = ai::ai(&board);
         board = boardfunc::place(&board, AI, aiChoice as usize).unwrap();
     }
+    let mut freeze = String::new();
+    std::io::stdin().read_line(&mut freeze).unwrap();
 }
