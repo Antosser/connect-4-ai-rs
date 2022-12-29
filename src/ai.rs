@@ -13,7 +13,7 @@ static MAX_DEPTH: i32 = 5;
 
 struct TreeNode {
     board: [[char; 10]; 10],
-    children: Option<[Box<TreeNode>; 10]>,
+    children: Option<[Option<Box<TreeNode>>; 10]>,
     nextTurn: char,
 }
 impl TreeNode {
@@ -32,7 +32,7 @@ impl TreeNode {
                             if nextTurn == AI { PLAYER } else { AI },
                         )));
                     }
-                    break 'bl Some(children.map(|child| child.unwrap()));
+                    break 'bl Some(children);
                 }
                 None
             },
@@ -41,8 +41,8 @@ impl TreeNode {
     }
 
     pub fn getValue(self: &TreeNode) -> i32 {
-        let mut maxValue = -999;
-        let mut minValue = 999;
+        let mut maxValue = -1;
+        let mut minValue = 1;
 
         let winner = boardfunc::getWinner(&self.board);
 
@@ -58,10 +58,12 @@ impl TreeNode {
         }
 
         for child in self.children.as_ref().unwrap().iter() {
-            let value = child.getValue();
+            if !child.is_none() {
+                let value = child.as_ref().unwrap().getValue();
 
-            minValue = min(minValue, value);
-            maxValue = max(maxValue, value);
+                minValue = min(minValue, value);
+                maxValue = max(maxValue, value);
+            }
         }
 
         if self.nextTurn == PLAYER {
@@ -77,26 +79,42 @@ impl TreeNode {
 }
 
 pub fn ai(board: &[[char; 10]; 10]) -> i32 {
-    let mut bestChoicePosition = 0;
-    let mut bestChoiceValue = -10;
+    // let mut bestChoicePosition = 0;
+    // let mut bestChoiceValue = -10;
 
-    let shared: Arc<Mutex<(i32, i32)>> = Arc::new(Mutex::new((0, -10)));
-    let mut threads: Vec<std::thread::JoinHandle<()>> = vec![];
+    let bestChoicePosition: Arc<Mutex<i32>> = Arc::new(Mutex::new(0));
+    let bestChoiceValue: Arc<Mutex<i32>> = Arc::new(Mutex::new(-10));
+    let mut handles: Vec<std::thread::JoinHandle<()>> = vec![];
 
     println!("AI VALUES");
     for i in 0..10 {
-        let afterAIMove = place(board, AI, i).unwrap();
-        // println!("AFTER AI MOVE {}", i);
-        // boardfunc::printBoard(&afterAIMove);
-        let value = TreeNode::new(&afterAIMove, MAX_DEPTH, PLAYER).getValue();
+        let bestChoicePosition = bestChoicePosition.clone();
+        let bestChoiceValue = bestChoiceValue.clone();
+        let board = board.clone();
 
-        println!("{}: {}", i, value);
+        handles.push(thread::spawn(move || {
+            let afterAIMove = place(&board, AI, i).unwrap();
+            // println!("AFTER AI MOVE {}", i);
+            // boardfunc::printBoard(&afterAIMove);
+            let value = TreeNode::new(&afterAIMove, MAX_DEPTH, PLAYER).getValue();
 
-        if value > bestChoiceValue {
-            bestChoiceValue = value;
-            bestChoicePosition = i;
-        }
+            println!("{}: {}", i, value);
+
+            {
+                let mut bestChoicePosition = bestChoicePosition.lock().unwrap();
+                let mut bestChoiceValue = bestChoiceValue.lock().unwrap();
+
+                if value > *bestChoiceValue {
+                    *bestChoiceValue = value;
+                    *bestChoicePosition = i as i32;
+                }
+            }
+        }));
     }
 
-    return bestChoicePosition as i32;
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    return *bestChoicePosition.lock().unwrap() as i32;
 }

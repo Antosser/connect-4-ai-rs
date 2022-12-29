@@ -17,7 +17,11 @@ fn main() {
         println!("PLAYER CHOOSING");
         boardfunc::printBoard(&board);
 
-        println!("Winner: {}", boardfunc::getWinner(&board));
+        let winner = boardfunc::getWinner(&board);
+        println!("Winner: {}", winner);
+        if winner != NONE {
+            break;
+        }
 
         let mut playerPick = String::new();
         println!("Your pick: ");
