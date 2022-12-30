@@ -10,6 +10,49 @@ static AI: char = 'O';
 
 static MAX_DEPTH: i32 = 5;
 
+struct Outcome {
+    certainWin: bool,
+    certainLoss: bool,
+    winChanceNumerator: i32,
+    winChanceDenominator: i32,
+}
+impl Outcome {
+    pub fn win() -> Outcome {
+        Outcome {
+            certainWin: true,
+            certainLoss: false,
+            winChanceNumerator: 1,
+            winChanceDenominator: 1,
+        }
+    }
+
+    pub fn loss() -> Outcome {
+        Outcome {
+            certainWin: false,
+            certainLoss: true,
+            winChanceNumerator: 0,
+            winChanceDenominator: 1,
+        }
+    }
+
+    pub fn unknown() -> Outcome {
+        Outcome {
+            certainWin: false,
+            certainLoss: false,
+            winChanceNumerator: 0,
+            winChanceDenominator: 0,
+        }
+    }
+
+    pub fn getChance(self: &Outcome) -> f32 {
+        if self.winChanceDenominator == 0 {
+            return 0.0;
+        }
+
+        self.winChanceNumerator as f32 / self.winChanceDenominator as f32
+    }
+}
+
 struct TreeNode {
     board: [[char; 10]; 10],
     children: Option<[Option<Box<TreeNode>>; 10]>,
@@ -42,50 +85,68 @@ impl TreeNode {
         }
     }
 
-    pub fn getValue(self: &TreeNode) -> f32 {
+    pub fn getValue(self: &TreeNode) -> Outcome {
         let winner = boardfunc::getWinner(&self.board);
 
         if winner == AI {
-            return 1.0;
+            return Outcome::win();
         }
         if winner == PLAYER {
-            return -1.0;
+            return Outcome::loss();
         }
 
         if self.children.is_none() {
-            return 0.0;
+            return Outcome::unknown();
         }
 
-        let mut sum: f32 = 0.0;
-        let mut maxProbability: f32 = -1.0;
-        let mut minProbability: f32 = 1.0;
+        let mut certainWins = 0;
+        let mut certainLosses = 0;
+        let mut winChanceNumerator = 0;
+        let mut winChanceDenominator = 0;
         for child in self.children.as_ref().unwrap().iter() {
             if !child.is_none() {
-                let value = child.as_ref().unwrap().getValue();
-                sum += value;
+                let outcome = child.as_ref().unwrap().getValue();
 
-                if value < minProbability {
-                    minProbability = value;
+                if outcome.certainWin == true {
+                    certainWins += 1;
                 }
-                if value > maxProbability {
-                    maxProbability = value;
+                if outcome.certainLoss == true {
+                    certainLosses += 1;
                 }
+
+                winChanceDenominator += outcome.winChanceDenominator;
+                winChanceNumerator += outcome.winChanceNumerator;
             }
         }
-        let average = sum / 10.0;
 
         if self.nextTurn == PLAYER {
-            if minProbability == -1.0 {
-                return -1.0;
+            if certainWins == 10 {
+                return Outcome::win();
             }
-            return average;
+            if certainLosses > 0 {
+                return Outcome::loss();
+            }
+            return Outcome {
+                certainWin: false,
+                certainLoss: false,
+                winChanceNumerator,
+                winChanceDenominator,
+            };
         }
 
         if self.nextTurn == AI {
-            if maxProbability == 1.0 {
-                return 1.0;
+            if certainWins > 0 {
+                return Outcome::win();
             }
-            return average;
+            if certainLosses == 10 {
+                return Outcome::loss();
+            }
+            return Outcome {
+                certainWin: false,
+                certainLoss: false,
+                winChanceNumerator,
+                winChanceDenominator,
+            };
         }
 
         panic!("wtf");
@@ -110,16 +171,34 @@ pub fn ai(board: &[[char; 10]; 10]) -> i32 {
             let afterAIMove = place(&board, AI, i).unwrap();
             // println!("AFTER AI MOVE {}", i);
             // boardfunc::printBoard(&afterAIMove);
-            let value = TreeNode::new(&afterAIMove, MAX_DEPTH, PLAYER).getValue();
+            let outcome = TreeNode::new(&afterAIMove, MAX_DEPTH, PLAYER).getValue();
 
-            println!("{}: {}", i, value);
+            println!(
+                "Move: {} | WinChance: {}/{} | Loss: {} | Win: {}",
+                i,
+                outcome.winChanceNumerator,
+                outcome.winChanceDenominator,
+                outcome.certainLoss,
+                outcome.certainWin
+            );
+
+            let winChance = 'bl: {
+                if outcome.certainLoss {
+                    break 'bl -1.0;
+                }
+                if outcome.certainWin {
+                    break 'bl 1.0;
+                }
+
+                outcome.getChance()
+            };
 
             {
                 let mut bestChoicePosition = bestChoicePosition.lock().unwrap();
                 let mut bestChoiceProbability = bestChoiceValue.lock().unwrap();
 
-                if value > *bestChoiceProbability {
-                    *bestChoiceProbability = value;
+                if winChance > *bestChoiceProbability {
+                    *bestChoiceProbability = winChance;
                     *bestChoicePosition = i as f32;
                 }
             }
