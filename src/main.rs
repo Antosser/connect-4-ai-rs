@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-
 mod ai;
 mod boardfunc;
 
@@ -15,32 +13,32 @@ fn main() {
             print!("\n");
         }
         println!("PLAYER CHOOSING");
-        boardfunc::printBoard(&board);
+        boardfunc::print_board(&board);
 
-        let winner = boardfunc::getWinner(&board);
+        let winner = boardfunc::get_winner(&board);
         println!("Winner: {}", winner);
         if winner != NONE {
             break;
         }
 
-        let mut playerPick = String::new();
+        let mut player_pick = String::new();
         println!("Your pick: ");
-        std::io::stdin().read_line(&mut playerPick).unwrap();
+        std::io::stdin().read_line(&mut player_pick).unwrap();
 
-        let mut pickAsInt: i32 = playerPick.trim().parse().unwrap();
-        pickAsInt -= 1;
-        if pickAsInt == -1 {
-            pickAsInt = 9;
+        let mut pick_as_int: i32 = player_pick.trim().parse().unwrap();
+        pick_as_int -= 1;
+        if pick_as_int == -1 {
+            pick_as_int = 9;
         }
 
-        assert!((0..10).contains(&(pickAsInt as usize)));
+        assert!((0..10).contains(&(pick_as_int as usize)));
 
-        board = boardfunc::place(&board, PLAYER, pickAsInt as usize).unwrap();
+        board = boardfunc::place(&board, PLAYER, pick_as_int as usize).unwrap();
         println!("AFTER PLAYER CHOOSES");
-        boardfunc::printBoard(&board);
+        boardfunc::print_board(&board);
 
-        let aiChoice = ai::ai(&board);
-        board = boardfunc::place(&board, AI, aiChoice as usize).unwrap();
+        let ai_choice = ai::ai(&board);
+        board = boardfunc::place(&board, AI, ai_choice as usize).unwrap();
     }
     let mut freeze = String::new();
     std::io::stdin().read_line(&mut freeze).unwrap();

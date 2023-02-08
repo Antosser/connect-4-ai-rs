@@ -11,69 +11,69 @@ static AI: char = 'O';
 static MAX_DEPTH: i32 = 5;
 
 struct Outcome {
-    certainWin: bool,
-    certainLoss: bool,
-    winChanceNumerator: i32,
-    winChanceDenominator: i32,
+    certain_win: bool,
+    certain_loss: bool,
+    win_chance_numberator: i32,
+    win_chance_denominator: i32,
 }
 impl Outcome {
     pub fn win() -> Outcome {
         Outcome {
-            certainWin: true,
-            certainLoss: false,
-            winChanceNumerator: 1,
-            winChanceDenominator: 1,
+            certain_win: true,
+            certain_loss: false,
+            win_chance_numberator: 1,
+            win_chance_denominator: 1,
         }
     }
 
     pub fn loss() -> Outcome {
         Outcome {
-            certainWin: false,
-            certainLoss: true,
-            winChanceNumerator: 0,
-            winChanceDenominator: 1,
+            certain_win: false,
+            certain_loss: true,
+            win_chance_numberator: 0,
+            win_chance_denominator: 1,
         }
     }
 
     pub fn unknown() -> Outcome {
         Outcome {
-            certainWin: false,
-            certainLoss: false,
-            winChanceNumerator: 0,
-            winChanceDenominator: 0,
+            certain_win: false,
+            certain_loss: false,
+            win_chance_numberator: 0,
+            win_chance_denominator: 0,
         }
     }
 
-    pub fn getChance(self: &Outcome) -> f32 {
-        if self.winChanceDenominator == 0 {
+    pub fn get_chance(self: &Outcome) -> f32 {
+        if self.win_chance_denominator == 0 {
             return 0.0;
         }
 
-        self.winChanceNumerator as f32 / self.winChanceDenominator as f32
+        self.win_chance_numberator as f32 / self.win_chance_denominator as f32
     }
 }
 
 struct TreeNode {
     board: [[char; 10]; 10],
     children: Option<[Option<Box<TreeNode>>; 10]>,
-    nextTurn: char,
+    next_turn: char,
 }
 impl TreeNode {
-    pub fn new(board: &[[char; 10]; 10], depthLeft: i32, nextTurn: char) -> TreeNode {
+    pub fn new(board: &[[char; 10]; 10], depth_left: i32, next_turn: char) -> TreeNode {
         TreeNode {
             board: *board,
             children: 'bl: {
-                if depthLeft > 0 {
+                if depth_left > 0 {
                     let mut children: [Option<Box<TreeNode>>; 10] =
                         [0; 10].map(|_| -> Option<Box<TreeNode>> { None });
                     for i in 0..10 {
-                        let newBoard = boardfunc::place(board, nextTurn, i);
+                        let new_board = boardfunc::place(board, next_turn, i);
 
-                        if !newBoard.is_none() {
+                        if !new_board.is_none() {
                             children[i] = Some(Box::new(TreeNode::new(
-                                &newBoard.unwrap(),
-                                depthLeft - 1,
-                                if nextTurn == AI { PLAYER } else { AI },
+                                &new_board.unwrap(),
+                                depth_left - 1,
+                                if next_turn == AI { PLAYER } else { AI },
                             )));
                         }
                     }
@@ -81,12 +81,12 @@ impl TreeNode {
                 }
                 None
             },
-            nextTurn,
+            next_turn,
         }
     }
 
-    pub fn getValue(self: &TreeNode) -> Outcome {
-        let winner = boardfunc::getWinner(&self.board);
+    pub fn get_value(self: &TreeNode) -> Outcome {
+        let winner = boardfunc::get_winner(&self.board);
 
         if winner == AI {
             return Outcome::win();
@@ -99,53 +99,53 @@ impl TreeNode {
             return Outcome::unknown();
         }
 
-        let mut certainWins = 0;
-        let mut certainLosses = 0;
-        let mut winChanceNumerator = 0;
-        let mut winChanceDenominator = 0;
+        let mut certain_win = 0;
+        let mut certain_loss = 0;
+        let mut win_chance_numerator = 0;
+        let mut win_chance_denominator = 0;
         for child in self.children.as_ref().unwrap().iter() {
             if !child.is_none() {
-                let outcome = child.as_ref().unwrap().getValue();
+                let outcome = child.as_ref().unwrap().get_value();
 
-                if outcome.certainWin == true {
-                    certainWins += 1;
+                if outcome.certain_win == true {
+                    certain_win += 1;
                 }
-                if outcome.certainLoss == true {
-                    certainLosses += 1;
+                if outcome.certain_loss == true {
+                    certain_loss += 1;
                 }
 
-                winChanceDenominator += outcome.winChanceDenominator;
-                winChanceNumerator += outcome.winChanceNumerator;
+                win_chance_denominator += outcome.win_chance_denominator;
+                win_chance_numerator += outcome.win_chance_numberator;
             }
         }
 
-        if self.nextTurn == PLAYER {
-            if certainWins == 10 {
+        if self.next_turn == PLAYER {
+            if certain_win == 10 {
                 return Outcome::win();
             }
-            if certainLosses > 0 {
+            if certain_loss > 0 {
                 return Outcome::loss();
             }
             return Outcome {
-                certainWin: false,
-                certainLoss: false,
-                winChanceNumerator,
-                winChanceDenominator,
+                certain_win: false,
+                certain_loss: false,
+                win_chance_numberator: win_chance_numerator,
+                win_chance_denominator,
             };
         }
 
-        if self.nextTurn == AI {
-            if certainWins > 0 {
+        if self.next_turn == AI {
+            if certain_win > 0 {
                 return Outcome::win();
             }
-            if certainLosses == 10 {
+            if certain_loss == 10 {
                 return Outcome::loss();
             }
             return Outcome {
-                certainWin: false,
-                certainLoss: false,
-                winChanceNumerator,
-                winChanceDenominator,
+                certain_win: false,
+                certain_loss: false,
+                win_chance_numberator: win_chance_numerator,
+                win_chance_denominator,
             };
         }
 
@@ -157,49 +157,49 @@ pub fn ai(board: &[[char; 10]; 10]) -> i32 {
     // let mut bestChoicePosition = 0;
     // let mut bestChoiceValue = -10;
 
-    let bestChoicePosition: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
-    let bestChoiceProbability: Arc<Mutex<f32>> = Arc::new(Mutex::new(-10.0));
+    let best_choice_position: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
+    let best_choice_probabiliy: Arc<Mutex<f32>> = Arc::new(Mutex::new(-10.0));
     let mut handles: Vec<std::thread::JoinHandle<()>> = vec![];
 
     println!("AI VALUES");
     for i in 0..10 {
-        let bestChoicePosition = bestChoicePosition.clone();
-        let bestChoiceValue = bestChoiceProbability.clone();
+        let best_choice_position = best_choice_position.clone();
+        let best_choice_value = best_choice_probabiliy.clone();
         let board = board.clone();
 
         handles.push(thread::spawn(move || {
-            let afterAIMove = place(&board, AI, i).unwrap();
+            let board_after_ai_move = place(&board, AI, i).unwrap();
             // println!("AFTER AI MOVE {}", i);
             // boardfunc::printBoard(&afterAIMove);
-            let outcome = TreeNode::new(&afterAIMove, MAX_DEPTH, PLAYER).getValue();
+            let outcome = TreeNode::new(&board_after_ai_move, MAX_DEPTH, PLAYER).get_value();
 
             println!(
                 "Move: {} | WinChance: {}/{} | Loss: {} | Win: {}",
                 i,
-                outcome.winChanceNumerator,
-                outcome.winChanceDenominator,
-                outcome.certainLoss,
-                outcome.certainWin
+                outcome.win_chance_numberator,
+                outcome.win_chance_denominator,
+                outcome.certain_loss,
+                outcome.certain_win
             );
 
-            let winChance = 'bl: {
-                if outcome.certainLoss {
+            let win_chance = 'bl: {
+                if outcome.certain_loss {
                     break 'bl -1.0;
                 }
-                if outcome.certainWin {
+                if outcome.certain_win {
                     break 'bl 1.0;
                 }
 
-                outcome.getChance()
+                outcome.get_chance()
             };
 
             {
-                let mut bestChoicePosition = bestChoicePosition.lock().unwrap();
-                let mut bestChoiceProbability = bestChoiceValue.lock().unwrap();
+                let mut best_choice_position = best_choice_position.lock().unwrap();
+                let mut best_choice_probability = best_choice_value.lock().unwrap();
 
-                if winChance > *bestChoiceProbability {
-                    *bestChoiceProbability = winChance;
-                    *bestChoicePosition = i as f32;
+                if win_chance > *best_choice_probability {
+                    *best_choice_probability = win_chance;
+                    *best_choice_position = i as f32;
                 }
             }
         }));
@@ -209,5 +209,5 @@ pub fn ai(board: &[[char; 10]; 10]) -> i32 {
         handle.join().unwrap();
     }
 
-    return *bestChoicePosition.lock().unwrap() as i32;
+    return *best_choice_position.lock().unwrap() as i32;
 }
