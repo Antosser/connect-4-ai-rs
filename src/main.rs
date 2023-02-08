@@ -33,13 +33,14 @@ fn main() {
             pick_as_int = 9;
         }
 
-        assert!((0..10).contains(&(pick_as_int as usize)));
+        assert!((0..10).contains(&(pick_as_int)));
 
         board = place(&board, Player::Player, pick_as_int as usize).unwrap();
         println!("AFTER PLAYER CHOOSES");
         boardfunc::print_board(&board);
 
         let ai_choice = ai(&board);
+        println!("\nAi Choice: {}", ai_choice);
         board = place(&board, Player::AI, ai_choice as usize).unwrap();
     }
     let mut freeze = String::new();
