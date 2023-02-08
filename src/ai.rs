@@ -1,14 +1,8 @@
-use core::panic;
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use crate::boardfunc::{self, place};
-
-static NONE: char = ' ';
-static PLAYER: char = 'X';
-static AI: char = 'O';
-
-static MAX_DEPTH: i32 = 5;
+use crate::boardfunc::*;
+use crate::types::*;
 
 struct Outcome {
     certain_win: bool,
@@ -54,26 +48,30 @@ impl Outcome {
 }
 
 struct TreeNode {
-    board: [[char; 10]; 10],
+    board: Board,
     children: Option<[Option<Box<TreeNode>>; 10]>,
-    next_turn: char,
+    next_turn: Player,
 }
 impl TreeNode {
-    pub fn new(board: &[[char; 10]; 10], depth_left: i32, next_turn: char) -> TreeNode {
+    pub fn new(board: &Board, depth_left: i32, next_turn: Player) -> TreeNode {
         TreeNode {
-            board: *board,
+            board: board.clone(),
             children: 'bl: {
                 if depth_left > 0 {
                     let mut children: [Option<Box<TreeNode>>; 10] =
                         [0; 10].map(|_| -> Option<Box<TreeNode>> { None });
                     for i in 0..10 {
-                        let new_board = boardfunc::place(board, next_turn, i);
+                        let new_board = place(board, next_turn, i);
 
                         if !new_board.is_none() {
                             children[i] = Some(Box::new(TreeNode::new(
                                 &new_board.unwrap(),
                                 depth_left - 1,
-                                if next_turn == AI { PLAYER } else { AI },
+                                if next_turn == Player::AI {
+                                    Player::Player
+                                } else {
+                                    Player::AI
+                                },
                             )));
                         }
                     }
@@ -86,12 +84,12 @@ impl TreeNode {
     }
 
     pub fn get_value(self: &TreeNode) -> Outcome {
-        let winner = boardfunc::get_winner(&self.board);
+        let winner = get_winner(&self.board);
 
-        if winner == AI {
+        if winner == Player::AI {
             return Outcome::win();
         }
-        if winner == PLAYER {
+        if winner == Player::Player {
             return Outcome::loss();
         }
 
@@ -119,7 +117,7 @@ impl TreeNode {
             }
         }
 
-        if self.next_turn == PLAYER {
+        if self.next_turn == Player::Player {
             if certain_win == 10 {
                 return Outcome::win();
             }
@@ -134,7 +132,7 @@ impl TreeNode {
             };
         }
 
-        if self.next_turn == AI {
+        if self.next_turn == Player::AI {
             if certain_win > 0 {
                 return Outcome::win();
             }
@@ -153,10 +151,7 @@ impl TreeNode {
     }
 }
 
-pub fn ai(board: &[[char; 10]; 10]) -> i32 {
-    // let mut bestChoicePosition = 0;
-    // let mut bestChoiceValue = -10;
-
+pub fn ai(board: &Board) -> i32 {
     let best_choice_position: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
     let best_choice_probabiliy: Arc<Mutex<f32>> = Arc::new(Mutex::new(-10.0));
     let mut handles: Vec<std::thread::JoinHandle<()>> = vec![];
@@ -168,10 +163,8 @@ pub fn ai(board: &[[char; 10]; 10]) -> i32 {
         let board = board.clone();
 
         handles.push(thread::spawn(move || {
-            let board_after_ai_move = place(&board, AI, i).unwrap();
-            // println!("AFTER AI MOVE {}", i);
-            // boardfunc::printBoard(&afterAIMove);
-            let outcome = TreeNode::new(&board_after_ai_move, MAX_DEPTH, PLAYER).get_value();
+            let board_after_ai_move = place(&board, Player::AI, i).unwrap();
+            let outcome = TreeNode::new(&board_after_ai_move, 5, Player::Player).get_value();
 
             println!(
                 "Move: {} | WinChance: {}/{} | Loss: {} | Win: {}",

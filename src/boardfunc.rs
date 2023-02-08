@@ -1,8 +1,6 @@
-static NONE: char = ' ';
-static PLAYER: char = 'X';
-static AI: char = 'O';
+use crate::types::*;
 
-pub fn print_board(board: &[[char; 10]; 10]) {
+pub fn print_board(board: &Board) {
     for y in 0..21 {
         for x in 0..21 {
             let is_horizontal = x % 2 == 0;
@@ -26,15 +24,15 @@ pub fn print_board(board: &[[char; 10]; 10]) {
     println!("  1   2   3   4   5   6   7   8   9   0  ")
 }
 
-pub fn place(board: &[[char; 10]; 10], color: char, x_pos: usize) -> Option<[[char; 10]; 10]> {
+pub fn place(board: &Board, player: Player, x_pos: usize) -> Option<Board> {
     let mut new_board = board.clone();
 
     // println!("PLACE");
     // printBoard(&newBoard);
 
     for y in (0..10).rev() {
-        if board[x_pos][y] == NONE {
-            new_board[x_pos][y] = color;
+        if board[x_pos][y] == Player::None {
+            new_board[x_pos][y] = player;
             return Some(new_board);
         }
     }
@@ -42,7 +40,7 @@ pub fn place(board: &[[char; 10]; 10], color: char, x_pos: usize) -> Option<[[ch
     None
 }
 
-pub fn get_winner(board: &[[char; 10]; 10]) -> char {
+pub fn get_winner(board: &Board) -> Player {
     // Horizontal
     for y in 0..10 {
         let mut player_streak = 0;
@@ -50,24 +48,24 @@ pub fn get_winner(board: &[[char; 10]; 10]) -> char {
         for x in 0..10 {
             let cell = board[x][y];
 
-            if cell == PLAYER {
+            if cell == Player::Player {
                 player_streak += 1;
                 ai_streak = 0;
             }
-            if cell == AI {
+            if cell == Player::AI {
                 ai_streak += 1;
                 player_streak = 0;
             }
-            if cell == NONE {
+            if cell == Player::None {
                 player_streak = 0;
                 ai_streak = 0;
             }
 
             if player_streak == 4 {
-                return PLAYER;
+                return Player::Player;
             }
             if ai_streak == 4 {
-                return AI;
+                return Player::AI;
             }
         }
     }
@@ -79,24 +77,24 @@ pub fn get_winner(board: &[[char; 10]; 10]) -> char {
         for y in 0..10 {
             let cell = board[x][y];
 
-            if cell == PLAYER {
+            if cell == Player::Player {
                 player_streak += 1;
                 ai_streak = 0;
             }
-            if cell == AI {
+            if cell == Player::AI {
                 ai_streak += 1;
                 player_streak = 0;
             }
-            if cell == NONE {
+            if cell == Player::None {
                 player_streak = 0;
                 ai_streak = 0;
             }
 
             if player_streak == 4 {
-                return PLAYER;
+                return Player::Player;
             }
             if ai_streak == 4 {
-                return AI;
+                return Player::AI;
             }
         }
     }
@@ -131,24 +129,24 @@ pub fn get_winner(board: &[[char; 10]; 10]) -> char {
         while (0..10).contains(&pos.0) && (0..10).contains(&pos.1) {
             let cell = board[pos.0 as usize][pos.1 as usize];
 
-            if cell == PLAYER {
+            if cell == Player::Player {
                 player_streak += 1;
                 ai_streak = 0;
             }
-            if cell == AI {
+            if cell == Player::AI {
                 ai_streak += 1;
                 player_streak = 0;
             }
-            if cell == NONE {
+            if cell == Player::None {
                 player_streak = 0;
                 ai_streak = 0;
             }
 
             if player_streak == 4 {
-                return PLAYER;
+                return Player::Player;
             }
             if ai_streak == 4 {
-                return AI;
+                return Player::AI;
             }
 
             pos.0 += 1;
@@ -186,24 +184,24 @@ pub fn get_winner(board: &[[char; 10]; 10]) -> char {
         while (0..10).contains(&pos.0) && (0..10).contains(&pos.1) {
             let cell = board[pos.0 as usize][pos.1 as usize];
 
-            if cell == PLAYER {
+            if cell == Player::Player {
                 player_streak += 1;
                 ai_streak = 0;
             }
-            if cell == AI {
+            if cell == Player::AI {
                 ai_streak += 1;
                 player_streak = 0;
             }
-            if cell == NONE {
+            if cell == Player::None {
                 player_streak = 0;
                 ai_streak = 0;
             }
 
             if player_streak == 4 {
-                return PLAYER;
+                return Player::Player;
             }
             if ai_streak == 4 {
-                return AI;
+                return Player::AI;
             }
 
             pos.0 -= 1;
@@ -211,5 +209,5 @@ pub fn get_winner(board: &[[char; 10]; 10]) -> char {
         }
     }
 
-    NONE
+    Player::None
 }
