@@ -27,6 +27,15 @@ impl Board {
         }
     }
 
+    pub fn print_with_arrow(&self, arrow_pos: i32) {
+        for _ in 0..(2 + 4 * arrow_pos) {
+            print!(" ");
+        }
+        println!("v");
+
+        self.print();
+    }
+
     pub fn print(&self) {
         for y in 0..21 {
             for x in 0..21 {

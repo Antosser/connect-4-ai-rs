@@ -7,13 +7,18 @@ use types::*;
 
 fn main() {
     let mut board: Board = Board::new();
+    let mut last_ai_position: Option<i32> = None;
 
     loop {
         for _ in 0..50 {
             print!("\n");
         }
         println!("PLAYER CHOOSING");
-        board.print();
+
+        match last_ai_position {
+            Some(pos) => board.print_with_arrow(pos),
+            None => board.print(),
+        }
 
         let winner = board.get_winner();
         if winner != Player::None {
@@ -40,6 +45,8 @@ fn main() {
         let ai_choice = ai(&board);
         println!("\nAi Choice: {}", ai_choice);
         board.place(Player::AI, ai_choice as usize).unwrap();
+
+        last_ai_position = Some(ai_choice);
     }
     let mut freeze = String::new();
     std::io::stdin().read_line(&mut freeze).unwrap();
