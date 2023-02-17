@@ -5,7 +5,7 @@ use crate::types::*;
 
 struct Outcome {
     certain_win: bool,
-    certain_loss: bool,
+    possible_loss: bool,
     win_chance_numberator: i32,
     win_chance_denominator: i32,
 }
@@ -13,7 +13,7 @@ impl Outcome {
     pub fn win() -> Outcome {
         Outcome {
             certain_win: true,
-            certain_loss: false,
+            possible_loss: false,
             win_chance_numberator: 1,
             win_chance_denominator: 1,
         }
@@ -22,7 +22,7 @@ impl Outcome {
     pub fn loss() -> Outcome {
         Outcome {
             certain_win: false,
-            certain_loss: true,
+            possible_loss: true,
             win_chance_numberator: 0,
             win_chance_denominator: 1,
         }
@@ -31,7 +31,7 @@ impl Outcome {
     pub fn unknown() -> Outcome {
         Outcome {
             certain_win: false,
-            certain_loss: false,
+            possible_loss: false,
             win_chance_numberator: 0,
             win_chance_denominator: 0,
         }
@@ -96,7 +96,7 @@ impl TreeNode {
         }
 
         let mut certain_win = 0;
-        let mut certain_loss = 0;
+        let mut possible_loss = 0;
         let mut win_chance_numerator = 0;
         let mut win_chance_denominator = 0;
 
@@ -110,8 +110,8 @@ impl TreeNode {
                 if outcome.certain_win == true {
                     certain_win += 1;
                 }
-                if outcome.certain_loss == true {
-                    certain_loss += 1;
+                if outcome.possible_loss == true {
+                    possible_loss += 1;
                 }
 
                 win_chance_denominator += outcome.win_chance_denominator;
@@ -123,12 +123,12 @@ impl TreeNode {
             if certain_win == 10 {
                 return Outcome::win();
             }
-            if certain_loss > 0 {
+            if possible_loss > 0 {
                 return Outcome::loss();
             }
             return Outcome {
                 certain_win: false,
-                certain_loss: false,
+                possible_loss: false,
                 win_chance_numberator: win_chance_numerator,
                 win_chance_denominator,
             };
@@ -138,12 +138,12 @@ impl TreeNode {
             if certain_win > 0 {
                 return Outcome::win();
             }
-            if certain_loss == 10 {
+            if possible_loss == 10 {
                 return Outcome::loss();
             }
             return Outcome {
                 certain_win: false,
-                certain_loss: false,
+                possible_loss: false,
                 win_chance_numberator: win_chance_numerator,
                 win_chance_denominator,
             };
@@ -175,12 +175,12 @@ pub fn ai(board: &Board) -> i32 {
                 i,
                 outcome.win_chance_numberator,
                 outcome.win_chance_denominator,
-                outcome.certain_loss,
+                outcome.possible_loss,
                 outcome.certain_win
             );
 
             let win_chance = 'bl: {
-                if outcome.certain_loss {
+                if outcome.possible_loss {
                     break 'bl -1.0;
                 }
                 if outcome.certain_win {
