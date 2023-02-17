@@ -49,7 +49,7 @@ fn main() {
                 continue;
             }
 
-            if board.place(Player::Player, pick_as_int as usize).is_some() {
+            if board.place(Player::Player, pick_as_int as usize).is_none() {
                 println!("No more space in that column");
                 continue;
             }

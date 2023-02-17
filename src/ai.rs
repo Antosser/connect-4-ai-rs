@@ -61,19 +61,16 @@ impl TreeNode {
                         [0; 10].map(|_| -> Option<Box<TreeNode>> { None });
                     for i in 0..10 {
                         let mut new_board = board.clone();
-                        match new_board.place(next_turn, i) {
-                            Some(_) => {
-                                children[i] = Some(Box::new(TreeNode::new(
-                                    &new_board,
-                                    depth_left - 1,
-                                    if next_turn == Player::AI {
-                                        Player::Player
-                                    } else {
-                                        Player::AI
-                                    },
-                                )));
-                            }
-                            None => {}
+                        if new_board.place(next_turn, i).is_some() {
+                            children[i] = Some(Box::new(TreeNode::new(
+                                &new_board,
+                                depth_left - 1,
+                                if next_turn == Player::AI {
+                                    Player::Player
+                                } else {
+                                    Player::AI
+                                },
+                            )));
                         }
                     }
                     break 'bl Some(children);
@@ -102,8 +99,12 @@ impl TreeNode {
         let mut certain_loss = 0;
         let mut win_chance_numerator = 0;
         let mut win_chance_denominator = 0;
+
+        if self.children.is_none() {
+            return Outcome::unknown();
+        }
         for child in self.children.as_ref().unwrap().iter() {
-            if !child.is_none() {
+            if child.is_some() {
                 let outcome = child.as_ref().unwrap().get_value();
 
                 if outcome.certain_win == true {
@@ -164,7 +165,9 @@ pub fn ai(board: &Board) -> i32 {
         let mut board = board.clone();
 
         handles.push(thread::spawn(move || {
-            board.place(Player::AI, i).unwrap();
+            if board.place(Player::AI, i).is_none() {
+                return;
+            }
             let outcome = TreeNode::new(&board, 5, Player::Player).get_value();
 
             println!(
