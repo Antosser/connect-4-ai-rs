@@ -26,19 +26,37 @@ fn main() {
             break;
         }
 
-        let mut player_pick = String::new();
-        println!("Your pick: ");
-        std::io::stdin().read_line(&mut player_pick).unwrap();
+        loop {
+            let mut player_pick = String::new();
+            println!("Your pick: ");
+            std::io::stdin().read_line(&mut player_pick).unwrap();
 
-        let mut pick_as_int: i32 = player_pick.trim().parse().unwrap();
-        pick_as_int -= 1;
-        if pick_as_int == -1 {
-            pick_as_int = 9;
+            let mut pick_as_int = match player_pick.trim().parse() {
+                Ok(x) => x,
+                Err(_) => {
+                    println!("Error parsing input.");
+                    continue;
+                }
+            };
+
+            pick_as_int -= 1;
+            if pick_as_int == -1 {
+                pick_as_int = 9;
+            }
+
+            if !(0..10).contains(&pick_as_int) {
+                println!("Number out of range.");
+                continue;
+            }
+
+            if board.place(Player::Player, pick_as_int as usize).is_some() {
+                println!("No more space in that column");
+                continue;
+            }
+
+            break;
         }
 
-        assert!((0..10).contains(&(pick_as_int)));
-
-        board.place(Player::Player, pick_as_int as usize).unwrap();
         println!("AFTER PLAYER CHOOSES");
         board.print();
 
