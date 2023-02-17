@@ -1,25 +1,23 @@
 mod ai;
-mod boardfunc;
 mod tests;
 mod types;
 
 use ai::*;
-use boardfunc::*;
 use types::*;
 
 fn main() {
-    let mut board: Board = [[Player::None; 10]; 10];
+    let mut board: Board = Board::new();
 
     loop {
         for _ in 0..50 {
             print!("\n");
         }
         println!("PLAYER CHOOSING");
-        print_board(&board);
+        board.print();
 
-        let winner = get_winner(&board);
-        println!("Winner: {}", winner);
+        let winner = board.get_winner();
         if winner != Player::None {
+            println!("Winner: {}", winner);
             break;
         }
 
@@ -35,13 +33,13 @@ fn main() {
 
         assert!((0..10).contains(&(pick_as_int)));
 
-        board = place(&board, Player::Player, pick_as_int as usize).unwrap();
+        board.place(Player::Player, pick_as_int as usize).unwrap();
         println!("AFTER PLAYER CHOOSES");
-        boardfunc::print_board(&board);
+        board.print();
 
         let ai_choice = ai(&board);
         println!("\nAi Choice: {}", ai_choice);
-        board = place(&board, Player::AI, ai_choice as usize).unwrap();
+        board.place(Player::AI, ai_choice as usize).unwrap();
     }
     let mut freeze = String::new();
     std::io::stdin().read_line(&mut freeze).unwrap();

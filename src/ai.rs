@@ -1,7 +1,6 @@
 use std::sync::{Arc, Mutex};
 use std::thread;
 
-use crate::boardfunc::*;
 use crate::types::*;
 
 struct Outcome {
@@ -61,18 +60,20 @@ impl TreeNode {
                     let mut children: [Option<Box<TreeNode>>; 10] =
                         [0; 10].map(|_| -> Option<Box<TreeNode>> { None });
                     for i in 0..10 {
-                        let new_board = place(board, next_turn, i);
-
-                        if !new_board.is_none() {
-                            children[i] = Some(Box::new(TreeNode::new(
-                                &new_board.unwrap(),
-                                depth_left - 1,
-                                if next_turn == Player::AI {
-                                    Player::Player
-                                } else {
-                                    Player::AI
-                                },
-                            )));
+                        let mut new_board = board.clone();
+                        match new_board.place(next_turn, i) {
+                            Some(_) => {
+                                children[i] = Some(Box::new(TreeNode::new(
+                                    &new_board,
+                                    depth_left - 1,
+                                    if next_turn == Player::AI {
+                                        Player::Player
+                                    } else {
+                                        Player::AI
+                                    },
+                                )));
+                            }
+                            None => {}
                         }
                     }
                     break 'bl Some(children);
@@ -84,7 +85,7 @@ impl TreeNode {
     }
 
     pub fn get_value(self: &TreeNode) -> Outcome {
-        let winner = get_winner(&self.board);
+        let winner = self.board.get_winner();
 
         if winner == Player::AI {
             return Outcome::win();
@@ -160,11 +161,11 @@ pub fn ai(board: &Board) -> i32 {
     for i in 0..10 {
         let best_choice_position = best_choice_position.clone();
         let best_choice_value = best_choice_probabiliy.clone();
-        let board = board.clone();
+        let mut board = board.clone();
 
         handles.push(thread::spawn(move || {
-            let board_after_ai_move = place(&board, Player::AI, i).unwrap();
-            let outcome = TreeNode::new(&board_after_ai_move, 5, Player::Player).get_value();
+            board.place(Player::AI, i).unwrap();
+            let outcome = TreeNode::new(&board, 5, Player::Player).get_value();
 
             println!(
                 "Move: {} | WinChance: {}/{} | Loss: {} | Win: {}",

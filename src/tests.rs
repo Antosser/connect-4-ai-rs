@@ -12,67 +12,73 @@ mod tests {
     #[test]
     fn horizontal_winner() {
         for player in [Player::Player, Player::AI] {
-            let mut board = [[Player::None; 10]; 10];
+            let mut board = Board::new();
 
-            board = place(&board, player, 1).unwrap();
-
-            assert_eq!(get_winner(&board), Player::None);
-
-            board = place(&board, player, 2).unwrap();
-            board = place(&board, player, 3).unwrap();
-            board = place(&board, player, 4).unwrap();
-
-            assert_eq!(get_winner(&board), player);
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[4][4] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[5][4] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[6][4] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[7][4] = player;
+            assert_eq!(board.get_winner(), player);
         }
     }
 
     #[test]
     fn vertical_winner() {
         for player in [Player::Player, Player::AI] {
-            let mut board = [[Player::None; 10]; 10];
+            let mut board = Board::new();
 
-            board = place(&board, player, 1).unwrap();
-
-            assert_eq!(get_winner(&board), Player::None);
-
-            board = place(&board, player, 1).unwrap();
-            board = place(&board, player, 1).unwrap();
-            board = place(&board, player, 1).unwrap();
-
-            assert_eq!(get_winner(&board), player);
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[4][4] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[4][5] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[4][6] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[4][7] = player;
+            assert_eq!(board.get_winner(), player);
         }
     }
 
     #[test]
     fn no_winner() {
-        assert_eq!(get_winner(&[[Player::None; 10]; 10]), Player::None);
+        assert_eq!(Board::new().get_winner(), Player::None);
     }
 
     #[test]
     fn right_up_diagonal_winner() {
         for player in [Player::Player, Player::AI] {
-            let mut board = [[Player::None; 10]; 10];
+            let mut board = Board::new();
 
-            board[2][8] = player;
-            board[3][7] = player;
-            board[4][6] = player;
-            assert_eq!(get_winner(&board), Player::None);
-            board[5][5] = player;
-            assert_eq!(get_winner(&board), player);
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[2][8] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[3][7] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[4][6] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[5][5] = player;
+            assert_eq!(board.get_winner(), player);
         }
     }
 
     #[test]
     fn left_up_diagonal_winner() {
         for player in [Player::Player, Player::AI] {
-            let mut board = [[Player::None; 10]; 10];
+            let mut board = Board::new();
 
-            board[8][8] = player;
-            board[7][7] = player;
-            board[6][6] = player;
-            assert_eq!(get_winner(&board), Player::None);
-            board[5][5] = player;
-            assert_eq!(get_winner(&board), player);
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[2][3] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[3][4] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[4][5] = player;
+            assert_eq!(board.get_winner(), Player::None);
+            board.data[5][6] = player;
+            assert_eq!(board.get_winner(), player);
         }
     }
 }
