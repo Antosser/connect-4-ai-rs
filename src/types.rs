@@ -15,6 +15,15 @@ impl std::fmt::Display for Player {
         })
     }
 }
+impl Player {
+    pub fn to_opposite(&self) -> Option<Player> {
+        match self {
+            Player::Player => Some(Player::AI),
+            Player::AI => Some(Player::Player),
+            Player::None => None,
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct Board {

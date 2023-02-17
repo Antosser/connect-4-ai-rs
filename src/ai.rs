@@ -65,11 +65,7 @@ impl TreeNode {
                             children[i] = Some(Box::new(TreeNode::new(
                                 &new_board,
                                 depth_left - 1,
-                                if next_turn == Player::AI {
-                                    Player::Player
-                                } else {
-                                    Player::AI
-                                },
+                                next_turn.to_opposite(),
                             )));
                         }
                     }
