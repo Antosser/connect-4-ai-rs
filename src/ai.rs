@@ -80,11 +80,10 @@ impl TreeNode {
     pub fn get_value(self: &TreeNode) -> Outcome {
         let winner = self.board.get_winner();
 
-        if winner == Player::AI {
-            return Outcome::win();
-        }
-        if winner == Player::Player {
-            return Outcome::loss();
+        match winner {
+            Cell::AI => return Outcome::win(),
+            Cell::Player => return Outcome::loss(),
+            Cell::None => {}
         }
 
         if self.children.is_none() {
@@ -115,37 +114,36 @@ impl TreeNode {
             }
         }
 
-        if self.next_turn == Player::Player {
-            if certain_win == 10 {
-                return Outcome::win();
+        match self.next_turn {
+            Player::Player => {
+                if certain_win == 10 {
+                    return Outcome::win();
+                }
+                if possible_loss > 0 {
+                    return Outcome::loss();
+                }
+                return Outcome {
+                    certain_win: false,
+                    possible_loss: false,
+                    win_chance_numberator: win_chance_numerator,
+                    win_chance_denominator,
+                };
             }
-            if possible_loss > 0 {
-                return Outcome::loss();
+            Player::AI => {
+                if certain_win > 0 {
+                    return Outcome::win();
+                }
+                if possible_loss == 10 {
+                    return Outcome::loss();
+                }
+                return Outcome {
+                    certain_win: false,
+                    possible_loss: false,
+                    win_chance_numberator: win_chance_numerator,
+                    win_chance_denominator,
+                };
             }
-            return Outcome {
-                certain_win: false,
-                possible_loss: false,
-                win_chance_numberator: win_chance_numerator,
-                win_chance_denominator,
-            };
         }
-
-        if self.next_turn == Player::AI {
-            if certain_win > 0 {
-                return Outcome::win();
-            }
-            if possible_loss == 10 {
-                return Outcome::loss();
-            }
-            return Outcome {
-                certain_win: false,
-                possible_loss: false,
-                win_chance_numberator: win_chance_numerator,
-                win_chance_denominator,
-            };
-        }
-
-        panic!("wtf");
     }
 }
 

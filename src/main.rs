@@ -21,7 +21,7 @@ fn main() {
         }
 
         let winner = board.get_winner();
-        if winner != Player::None {
+        if winner != Cell::None {
             println!("Winner: {}", winner);
             break;
         }

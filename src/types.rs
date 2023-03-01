@@ -1,38 +1,53 @@
+use std::sync::{Arc, Mutex};
+use std::thread;
+
 #[derive(Clone, Copy, PartialEq, Debug)]
-pub enum Player {
+pub enum Cell {
     Player,
     AI,
     None,
 }
-impl std::fmt::Display for Player {
+impl std::fmt::Display for Cell {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", {
             match self {
-                Player::AI => 'O',
-                Player::Player => 'X',
-                Player::None => ' ',
+                Cell::AI => 'O',
+                Cell::Player => 'X',
+                Cell::None => ' ',
             }
         })
     }
 }
+
+#[derive(Clone, Copy, PartialEq, Debug)]
+pub enum Player {
+    Player,
+    AI,
+}
 impl Player {
-    pub fn to_opposite(&self) -> Option<Player> {
+    pub fn to_opposite(&self) -> Player {
         match self {
-            Player::Player => Some(Player::AI),
-            Player::AI => Some(Player::Player),
-            Player::None => None,
+            Player::Player => Player::AI,
+            Player::AI => Player::Player,
+        }
+    }
+
+    pub fn to_cell(&self) -> Cell {
+        match self {
+            Player::Player => Cell::Player,
+            Player::AI => Cell::AI,
         }
     }
 }
 
 #[derive(Clone)]
 pub struct Board {
-    pub data: [[Player; 10]; 10],
+    pub data: [[Cell; 10]; 10],
 }
 impl Board {
     pub fn new() -> Board {
         Board {
-            data: [[Player::None; 10]; 10],
+            data: [[Cell::None; 10]; 10],
         }
     }
 
@@ -71,8 +86,8 @@ impl Board {
 
     pub fn place(&mut self, player: Player, x_pos: usize) -> Option<()> {
         for y in (0..10).rev() {
-            if self.data[x_pos][y] == Player::None {
-                self.data[x_pos][y] = player;
+            if self.data[x_pos][y] == Cell::None {
+                self.data[x_pos][y] = player.to_cell();
 
                 return Some(());
             }
@@ -81,7 +96,7 @@ impl Board {
         None
     }
 
-    pub fn get_winner(&self) -> Player {
+    pub fn get_winner(&self) -> Cell {
         // Horizontal
         for y in 0..10 {
             let mut player_streak = 0;
@@ -89,24 +104,24 @@ impl Board {
             for x in 0..10 {
                 let cell = self.data[x][y];
 
-                if cell == Player::Player {
+                if cell == Cell::Player {
                     player_streak += 1;
                     ai_streak = 0;
                 }
-                if cell == Player::AI {
+                if cell == Cell::AI {
                     ai_streak += 1;
                     player_streak = 0;
                 }
-                if cell == Player::None {
+                if cell == Cell::None {
                     player_streak = 0;
                     ai_streak = 0;
                 }
 
                 if player_streak == 4 {
-                    return Player::Player;
+                    return Cell::Player;
                 }
                 if ai_streak == 4 {
-                    return Player::AI;
+                    return Cell::AI;
                 }
             }
         }
@@ -118,24 +133,24 @@ impl Board {
             for y in 0..10 {
                 let cell = self.data[x][y];
 
-                if cell == Player::Player {
+                if cell == Cell::Player {
                     player_streak += 1;
                     ai_streak = 0;
                 }
-                if cell == Player::AI {
+                if cell == Cell::AI {
                     ai_streak += 1;
                     player_streak = 0;
                 }
-                if cell == Player::None {
+                if cell == Cell::None {
                     player_streak = 0;
                     ai_streak = 0;
                 }
 
                 if player_streak == 4 {
-                    return Player::Player;
+                    return Cell::Player;
                 }
                 if ai_streak == 4 {
-                    return Player::AI;
+                    return Cell::AI;
                 }
             }
         }
@@ -170,24 +185,24 @@ impl Board {
             while (0..10).contains(&pos.0) && (0..10).contains(&pos.1) {
                 let cell = self.data[pos.0 as usize][pos.1 as usize];
 
-                if cell == Player::Player {
+                if cell == Cell::Player {
                     player_streak += 1;
                     ai_streak = 0;
                 }
-                if cell == Player::AI {
+                if cell == Cell::AI {
                     ai_streak += 1;
                     player_streak = 0;
                 }
-                if cell == Player::None {
+                if cell == Cell::None {
                     player_streak = 0;
                     ai_streak = 0;
                 }
 
                 if player_streak == 4 {
-                    return Player::Player;
+                    return Cell::Player;
                 }
                 if ai_streak == 4 {
-                    return Player::AI;
+                    return Cell::AI;
                 }
 
                 pos.0 += 1;
@@ -225,24 +240,24 @@ impl Board {
             while (0..10).contains(&pos.0) && (0..10).contains(&pos.1) {
                 let cell = self.data[pos.0 as usize][pos.1 as usize];
 
-                if cell == Player::Player {
+                if cell == Cell::Player {
                     player_streak += 1;
                     ai_streak = 0;
                 }
-                if cell == Player::AI {
+                if cell == Cell::AI {
                     ai_streak += 1;
                     player_streak = 0;
                 }
-                if cell == Player::None {
+                if cell == Cell::None {
                     player_streak = 0;
                     ai_streak = 0;
                 }
 
                 if player_streak == 4 {
-                    return Player::Player;
+                    return Cell::Player;
                 }
                 if ai_streak == 4 {
-                    return Player::AI;
+                    return Cell::AI;
                 }
 
                 pos.0 -= 1;
@@ -250,6 +265,6 @@ impl Board {
             }
         }
 
-        Player::None
+        Cell::None
     }
 }
