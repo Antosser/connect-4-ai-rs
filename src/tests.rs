@@ -81,4 +81,66 @@ mod tests {
             assert_eq!(board.get_winner(), player);
         }
     }
+
+    #[test]
+    fn ai_detect_horizontal_win() {
+        for player in [Player::Player, Player::AI] {
+            for _ in 0..2 {
+                let mut board = Board::new();
+
+                board.place(player, 5);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                board.place(player, 3);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                board.place(player, 4);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                board.place(player, 2);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                assert_ne!(board.get_winner(), player.to_cell());
+            }
+        }
+    }
+
+    #[test]
+    fn ai_detect_vertical_win() {
+        for player in [Player::Player, Player::AI] {
+            for _ in 0..2 {
+                let mut board = Board::new();
+
+                board.place(player, 5);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                board.place(player, 3);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                board.place(player, 4);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                board.place(player, 2);
+                board.place(
+                    player.to_opposite(),
+                    board.calculate_best_move(Player::AI) as usize,
+                );
+                assert_ne!(board.get_winner(), player.to_cell());
+            }
+        }
+    }
 }
