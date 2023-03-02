@@ -40,6 +40,49 @@ impl Player {
     }
 }
 
+struct Outcome {
+    certain_win: bool,
+    possible_loss: bool,
+    win_chance_numberator: i32,
+    win_chance_denominator: i32,
+}
+impl Outcome {
+    pub fn win() -> Outcome {
+        Outcome {
+            certain_win: true,
+            possible_loss: false,
+            win_chance_numberator: 1,
+            win_chance_denominator: 1,
+        }
+    }
+
+    pub fn loss() -> Outcome {
+        Outcome {
+            certain_win: false,
+            possible_loss: true,
+            win_chance_numberator: 0,
+            win_chance_denominator: 1,
+        }
+    }
+
+    pub fn unknown() -> Outcome {
+        Outcome {
+            certain_win: false,
+            possible_loss: false,
+            win_chance_numberator: 0,
+            win_chance_denominator: 1,
+        }
+    }
+
+    pub fn get_chance(self: &Outcome) -> f32 {
+        if self.win_chance_denominator == 0 {
+            return 0.0;
+        }
+
+        self.win_chance_numberator as f32 / self.win_chance_denominator as f32
+    }
+}
+
 #[derive(Clone)]
 pub struct Board {
     pub data: [[Cell; 10]; 10],
@@ -266,5 +309,131 @@ impl Board {
         }
 
         Cell::None
+    }
+
+    fn get_outcome(&self, depth: i32, next_turn: Player) -> Outcome {
+        let winner = self.get_winner();
+
+        match winner {
+            Cell::AI => return Outcome::win(),
+            Cell::Player => return Outcome::loss(),
+            Cell::None => {}
+        }
+
+        if depth <= 0 {
+            return Outcome::unknown();
+        }
+
+        let mut possible_moves: [Board; 10] = [(); 10].map(|_| self.clone());
+        for i in 0..10 {
+            possible_moves[i].place(next_turn, i);
+        }
+
+        let outcomes =
+            possible_moves.map(|board| board.get_outcome(depth - 1, next_turn.to_opposite()));
+
+        let mut certain_win = 0;
+        let mut possible_loss = 0;
+        let mut win_chance_numerator = 0;
+        let mut win_chance_denominator = 0;
+
+        for outcome in &outcomes {
+            if outcome.certain_win == true {
+                certain_win += 1;
+            }
+            if outcome.possible_loss == true {
+                possible_loss += 1;
+            }
+
+            win_chance_denominator += outcome.win_chance_denominator;
+            win_chance_numerator += outcome.win_chance_numberator;
+        }
+
+        match next_turn {
+            Player::Player => {
+                if certain_win == 10 {
+                    return Outcome::win();
+                }
+                if possible_loss > 0 {
+                    return Outcome::loss();
+                }
+                return Outcome {
+                    certain_win: false,
+                    possible_loss: false,
+                    win_chance_numberator: win_chance_numerator,
+                    win_chance_denominator,
+                };
+            }
+            Player::AI => {
+                if certain_win > 0 {
+                    return Outcome::win();
+                }
+                if possible_loss == 10 {
+                    return Outcome::loss();
+                }
+                return Outcome {
+                    certain_win: false,
+                    possible_loss: false,
+                    win_chance_numberator: win_chance_numerator,
+                    win_chance_denominator,
+                };
+            }
+        }
+    }
+
+    pub fn calculate_best_move(&self) -> i32 {
+        let best_choice_position: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
+        let best_choice_probabiliy: Arc<Mutex<f32>> = Arc::new(Mutex::new(-10.0));
+        let mut handles: Vec<std::thread::JoinHandle<()>> = vec![];
+
+        println!("AI VALUES");
+        for i in 0..10 {
+            let best_choice_position = best_choice_position.clone();
+            let best_choice_value = best_choice_probabiliy.clone();
+            let mut board = self.clone();
+
+            handles.push(thread::spawn(move || {
+                if board.place(Player::AI, i).is_none() {
+                    return;
+                }
+                let outcome = board.get_outcome(5, Player::Player);
+
+                println!(
+                    "Move: {} | WinChance: {}/{} | Loss: {} | Win: {}",
+                    i,
+                    outcome.win_chance_numberator,
+                    outcome.win_chance_denominator,
+                    outcome.possible_loss,
+                    outcome.certain_win
+                );
+
+                let win_chance = 'bl: {
+                    if outcome.possible_loss {
+                        break 'bl -1.0;
+                    }
+                    if outcome.certain_win {
+                        break 'bl 1.0;
+                    }
+
+                    outcome.get_chance()
+                };
+
+                {
+                    let mut best_choice_position = best_choice_position.lock().unwrap();
+                    let mut best_choice_probability = best_choice_value.lock().unwrap();
+
+                    if win_chance > *best_choice_probability {
+                        *best_choice_probability = win_chance;
+                        *best_choice_position = i as f32;
+                    }
+                }
+            }));
+        }
+
+        for handle in handles {
+            handle.join().unwrap();
+        }
+
+        return *best_choice_position.lock().unwrap() as i32;
     }
 }

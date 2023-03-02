@@ -2,7 +2,6 @@ mod ai;
 mod tests;
 mod types;
 
-use ai::*;
 use types::*;
 
 fn main() {
@@ -60,7 +59,7 @@ fn main() {
         println!("AFTER PLAYER CHOOSES");
         board.print();
 
-        let ai_choice = ai(&board);
+        let ai_choice = board.calculate_best_move();
         println!("\nAi Choice: {}", ai_choice);
         board.place(Player::AI, ai_choice as usize).unwrap();
 
