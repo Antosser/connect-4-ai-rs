@@ -390,7 +390,7 @@ impl Board {
         panic!();
     }
 
-    pub fn calculate_best_move(&self, user: Player) -> i32 {
+    pub fn calculate_best_move(&self, user: Player, depth: i32) -> i32 {
         let best_choice_position: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
         let best_choice_probabiliy: Arc<Mutex<f32>> = Arc::new(Mutex::new(-10.0));
         let mut handles: Vec<std::thread::JoinHandle<()>> = vec![];
@@ -405,7 +405,7 @@ impl Board {
                 if board.place(user, i).is_none() {
                     return;
                 }
-                let outcome = board.get_outcome(5, user.to_opposite(), user);
+                let outcome = board.get_outcome(depth, user.to_opposite(), user);
 
                 println!(
                     "Move: {} | WinChance: {}/{} | Loss: {} | Win: {}",

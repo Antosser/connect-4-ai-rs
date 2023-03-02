@@ -91,22 +91,22 @@ mod tests {
                 board.place(player, 5);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 board.place(player, 3);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 board.place(player, 4);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 board.place(player, 2);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 assert_ne!(board.get_winner(), player.to_cell());
             }
@@ -122,22 +122,22 @@ mod tests {
                 board.place(player, 5);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 board.place(player, 3);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 board.place(player, 4);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 board.place(player, 2);
                 board.place(
                     player.to_opposite(),
-                    board.calculate_best_move(Player::AI) as usize,
+                    board.calculate_best_move(Player::AI, 3) as usize,
                 );
                 assert_ne!(board.get_winner(), player.to_cell());
             }
