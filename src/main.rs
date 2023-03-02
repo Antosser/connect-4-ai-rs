@@ -58,7 +58,7 @@ fn main() {
         println!("AFTER PLAYER CHOOSES");
         board.print();
 
-        let ai_choice = board.calculate_best_move();
+        let ai_choice = board.calculate_best_move(Player::AI);
         println!("\nAi Choice: {}", ai_choice);
         board.place(Player::AI, ai_choice as usize).unwrap();
 

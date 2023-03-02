@@ -147,17 +147,19 @@ impl Board {
             for x in 0..10 {
                 let cell = self.data[x][y];
 
-                if cell == Cell::Player {
-                    player_streak += 1;
-                    ai_streak = 0;
-                }
-                if cell == Cell::AI {
-                    ai_streak += 1;
-                    player_streak = 0;
-                }
-                if cell == Cell::None {
-                    player_streak = 0;
-                    ai_streak = 0;
+                match cell {
+                    Cell::Player => {
+                        player_streak += 1;
+                        ai_streak = 0;
+                    }
+                    Cell::AI => {
+                        ai_streak += 1;
+                        player_streak = 0;
+                    }
+                    Cell::None => {
+                        player_streak = 0;
+                        ai_streak = 0;
+                    }
                 }
 
                 if player_streak == 4 {
@@ -176,17 +178,19 @@ impl Board {
             for y in 0..10 {
                 let cell = self.data[x][y];
 
-                if cell == Cell::Player {
-                    player_streak += 1;
-                    ai_streak = 0;
-                }
-                if cell == Cell::AI {
-                    ai_streak += 1;
-                    player_streak = 0;
-                }
-                if cell == Cell::None {
-                    player_streak = 0;
-                    ai_streak = 0;
+                match cell {
+                    Cell::Player => {
+                        player_streak += 1;
+                        ai_streak = 0;
+                    }
+                    Cell::AI => {
+                        ai_streak += 1;
+                        player_streak = 0;
+                    }
+                    Cell::None => {
+                        player_streak = 0;
+                        ai_streak = 0;
+                    }
                 }
 
                 if player_streak == 4 {
@@ -228,17 +232,19 @@ impl Board {
             while (0..10).contains(&pos.0) && (0..10).contains(&pos.1) {
                 let cell = self.data[pos.0 as usize][pos.1 as usize];
 
-                if cell == Cell::Player {
-                    player_streak += 1;
-                    ai_streak = 0;
-                }
-                if cell == Cell::AI {
-                    ai_streak += 1;
-                    player_streak = 0;
-                }
-                if cell == Cell::None {
-                    player_streak = 0;
-                    ai_streak = 0;
+                match cell {
+                    Cell::Player => {
+                        player_streak += 1;
+                        ai_streak = 0;
+                    }
+                    Cell::AI => {
+                        ai_streak += 1;
+                        player_streak = 0;
+                    }
+                    Cell::None => {
+                        player_streak = 0;
+                        ai_streak = 0;
+                    }
                 }
 
                 if player_streak == 4 {
@@ -283,17 +289,19 @@ impl Board {
             while (0..10).contains(&pos.0) && (0..10).contains(&pos.1) {
                 let cell = self.data[pos.0 as usize][pos.1 as usize];
 
-                if cell == Cell::Player {
-                    player_streak += 1;
-                    ai_streak = 0;
-                }
-                if cell == Cell::AI {
-                    ai_streak += 1;
-                    player_streak = 0;
-                }
-                if cell == Cell::None {
-                    player_streak = 0;
-                    ai_streak = 0;
+                match cell {
+                    Cell::Player => {
+                        player_streak += 1;
+                        ai_streak = 0;
+                    }
+                    Cell::AI => {
+                        ai_streak += 1;
+                        player_streak = 0;
+                    }
+                    Cell::None => {
+                        player_streak = 0;
+                        ai_streak = 0;
+                    }
                 }
 
                 if player_streak == 4 {
@@ -311,13 +319,15 @@ impl Board {
         Cell::None
     }
 
-    fn get_outcome(&self, depth: i32, next_turn: Player) -> Outcome {
+    fn get_outcome(&self, depth: i32, next_turn: Player, user: Player) -> Outcome {
         let winner = self.get_winner();
+        let anti_user = user.to_opposite();
 
-        match winner {
-            Cell::AI => return Outcome::win(),
-            Cell::Player => return Outcome::loss(),
-            Cell::None => {}
+        if winner == user.to_cell() {
+            return Outcome::win();
+        }
+        if winner == anti_user.to_cell() {
+            return Outcome::loss();
         }
 
         if depth <= 0 {
@@ -330,7 +340,7 @@ impl Board {
         }
 
         let outcomes =
-            possible_moves.map(|board| board.get_outcome(depth - 1, next_turn.to_opposite()));
+            possible_moves.map(|board| board.get_outcome(depth - 1, next_turn.to_opposite(), user));
 
         let mut certain_win = 0;
         let mut possible_loss = 0;
@@ -349,39 +359,38 @@ impl Board {
             win_chance_numerator += outcome.win_chance_numberator;
         }
 
-        match next_turn {
-            Player::Player => {
-                if certain_win == 10 {
-                    return Outcome::win();
-                }
-                if possible_loss > 0 {
-                    return Outcome::loss();
-                }
-                return Outcome {
-                    certain_win: false,
-                    possible_loss: false,
-                    win_chance_numberator: win_chance_numerator,
-                    win_chance_denominator,
-                };
+        if next_turn == anti_user {
+            if certain_win == 10 {
+                return Outcome::win();
             }
-            Player::AI => {
-                if certain_win > 0 {
-                    return Outcome::win();
-                }
-                if possible_loss == 10 {
-                    return Outcome::loss();
-                }
-                return Outcome {
-                    certain_win: false,
-                    possible_loss: false,
-                    win_chance_numberator: win_chance_numerator,
-                    win_chance_denominator,
-                };
+            if possible_loss > 0 {
+                return Outcome::loss();
             }
+            return Outcome {
+                certain_win: false,
+                possible_loss: false,
+                win_chance_numberator: win_chance_numerator,
+                win_chance_denominator,
+            };
         }
+        if next_turn == user {
+            if certain_win > 0 {
+                return Outcome::win();
+            }
+            if possible_loss == 10 {
+                return Outcome::loss();
+            }
+            return Outcome {
+                certain_win: false,
+                possible_loss: false,
+                win_chance_numberator: win_chance_numerator,
+                win_chance_denominator,
+            };
+        }
+        panic!();
     }
 
-    pub fn calculate_best_move(&self) -> i32 {
+    pub fn calculate_best_move(&self, user: Player) -> i32 {
         let best_choice_position: Arc<Mutex<f32>> = Arc::new(Mutex::new(0.0));
         let best_choice_probabiliy: Arc<Mutex<f32>> = Arc::new(Mutex::new(-10.0));
         let mut handles: Vec<std::thread::JoinHandle<()>> = vec![];
@@ -393,10 +402,10 @@ impl Board {
             let mut board = self.clone();
 
             handles.push(thread::spawn(move || {
-                if board.place(Player::AI, i).is_none() {
+                if board.place(user, i).is_none() {
                     return;
                 }
-                let outcome = board.get_outcome(5, Player::Player);
+                let outcome = board.get_outcome(5, user.to_opposite(), user);
 
                 println!(
                     "Move: {} | WinChance: {}/{} | Loss: {} | Win: {}",
