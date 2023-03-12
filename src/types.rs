@@ -348,10 +348,10 @@ impl Board {
         let mut win_chance_denominator = 0;
 
         for outcome in &outcomes {
-            if outcome.certain_win == true {
+            if outcome.certain_win {
                 certain_wins += 1;
             }
-            if outcome.possible_loss == true {
+            if outcome.possible_loss {
                 possible_losses += 1;
             }
 

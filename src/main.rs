@@ -9,7 +9,7 @@ fn main() {
 
     loop {
         for _ in 0..50 {
-            print!("\n");
+            println!();
         }
         println!("PLAYER CHOOSING");
 
