@@ -25,14 +25,14 @@ pub enum Player {
     AI,
 }
 impl Player {
-    pub fn to_opposite(&self) -> Player {
+    pub fn to_opposite(self) -> Player {
         match self {
             Player::Player => Player::AI,
             Player::AI => Player::Player,
         }
     }
 
-    pub fn to_cell(&self) -> Cell {
+    pub fn to_cell(self) -> Cell {
         match self {
             Player::Player => Cell::Player,
             Player::AI => Cell::AI,
@@ -335,8 +335,8 @@ impl Board {
         }
 
         let mut possible_moves: [Board; 10] = [(); 10].map(|_| self.clone());
-        for i in 0..10 {
-            possible_moves[i].place(next_turn, i);
+        for (i, possible_move) in possible_moves.iter_mut().enumerate() {
+            possible_move.place(next_turn, i);
         }
 
         let outcomes =
