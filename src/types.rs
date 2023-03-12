@@ -342,17 +342,17 @@ impl Board {
         let outcomes =
             possible_moves.map(|board| board.get_outcome(depth - 1, next_turn.to_opposite(), user));
 
-        let mut certain_win = 0;
-        let mut possible_loss = 0;
+        let mut certain_wins = 0;
+        let mut possible_losses = 0;
         let mut win_chance_numerator = 0;
         let mut win_chance_denominator = 0;
 
         for outcome in &outcomes {
             if outcome.certain_win == true {
-                certain_win += 1;
+                certain_wins += 1;
             }
             if outcome.possible_loss == true {
-                possible_loss += 1;
+                possible_losses += 1;
             }
 
             win_chance_denominator += outcome.win_chance_denominator;
@@ -360,10 +360,10 @@ impl Board {
         }
 
         if next_turn == anti_user {
-            if certain_win == 10 {
+            if certain_wins == 10 {
                 return Outcome::win();
             }
-            if possible_loss > 0 {
+            if possible_losses > 0 {
                 return Outcome::loss();
             }
             return Outcome {
@@ -374,10 +374,10 @@ impl Board {
             };
         }
         if next_turn == user {
-            if certain_win > 0 {
+            if certain_wins > 0 {
                 return Outcome::win();
             }
-            if possible_loss == 10 {
+            if possible_losses == 10 {
                 return Outcome::loss();
             }
             return Outcome {
